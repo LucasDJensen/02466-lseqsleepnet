@@ -16,6 +16,7 @@ from sklearn.metrics import cohen_kappa_score
 from datagenerator_wrapper import DataGeneratorWrapper
 
 import time
+from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
 
 # Parameters
 # ==================================================
@@ -23,16 +24,15 @@ import time
 # Misc Parameters
 tf.app.flags.DEFINE_string("allow_soft_placement", 'True', "Allow device soft device placement")
 tf.app.flags.DEFINE_string("log_device_placement", 'False', "Log placement of ops on devices")
-
 # My Parameters
-tf.app.flags.DEFINE_string("eeg_train_data", "./code/HUMMUSS/SleepTransformer_mice/shhs/data_preprocessing/kornum_data/file_list/remote/eeg1/train_list.txt", "file containing the list of training EEG data")
-tf.app.flags.DEFINE_string("eeg_eval_data", "./code/HUMMUSS/SleepTransformer_mice/shhs/data_preprocessing/kornum_data/file_list/remote/eeg1/eval_list.txt", "file containing the list of evaluation EEG data")
-tf.app.flags.DEFINE_string("eog_train_data", "", "file containing the list of training EOG data")
-tf.app.flags.DEFINE_string("eog_eval_data", "", "file containing the list of evaluation EOG data")
-tf.app.flags.DEFINE_string("emg_train_data", "", "file containing the list of training EMG data")
-tf.app.flags.DEFINE_string("emg_eval_data", "", "file containing the list of evaluation EMG data")
-tf.app.flags.DEFINE_string("out_dir", "./outputs/l_seq_sleepnet_train_test/", "Output directory")
-tf.app.flags.DEFINE_string("checkpoint_dir", "./checkpoint/", "Checkpoint directory")
+tf.app.flags.DEFINE_string("eeg_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/train_list.txt"), "file containing the list of training EEG data")
+tf.app.flags.DEFINE_string("eeg_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/eval_list.txt"), "file containing the list of evaluation EEG data")
+tf.app.flags.DEFINE_string("eog_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/train_list.txt"), "file containing the list of training EOG data")
+tf.app.flags.DEFINE_string("eog_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/eval_list.txt"), "file containing the list of evaluation EOG data")
+tf.app.flags.DEFINE_string("emg_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/train_list.txt"), "file containing the list of training EMG data")
+tf.app.flags.DEFINE_string("emg_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/eval_list.txt"), "file containing the list of evaluation EMG data")
+tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/"), "Output directory")
+tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/checkpoint/"), "Checkpoint directory")
 tf.app.flags.DEFINE_integer("training_epoch", 10, "Number of training epochs (default: 10)")
 tf.app.flags.DEFINE_integer("batch_size", 8, "Number of instances per mini-batch (default: 32)")
 
@@ -44,18 +44,18 @@ tf.app.flags.DEFINE_integer("nhidden2", 64, "Sequence length (default: 20)")
 
 tf.app.flags.DEFINE_integer("nclasses_data", 4, "Number of classes in the data (whether artifacts are discarded or not is controlled in nclasses_model)")
 tf.app.flags.DEFINE_string("mask_artifacts", 'False', "whether masking artifacts in loss")
-tf.app.flags.DEFINE_string("artifact_detection", 'False', "whether just predicting if an epoch is an artifact")
+tf.app.flags.DEFINE_string("artifact_detection", 'True', "whether just predicting if an epoch is an artifact")
 tf.app.flags.DEFINE_integer("ndim", 129, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("frame_seq_len", 17, "Sequence length (default: 20)")
 
 # subsuqence length
-tf.app.flags.DEFINE_integer("sub_seq_len", 5, "Sequence length (default: 32)")
+tf.app.flags.DEFINE_integer("sub_seq_len", 10, "Sequence length (default: 32)")
 # number of subsequence
-tf.app.flags.DEFINE_integer("nsubseq", 10, "number of overall segments (default: 9)")
+tf.app.flags.DEFINE_integer("nsubseq", 8, "number of overall segments (default: 9)")
 
 tf.app.flags.DEFINE_string("early_stopping", 'True', "whether to apply early stopping (default: True)")
 tf.app.flags.DEFINE_string("best_model_criteria", 'balanced_accuracy', "whether to save the model with best 'balanced_accuracy' or 'accuracy' (default: accuracy)")
-tf.app.flags.DEFINE_string("loss_type", 'normal_ce', "whether to use 'weighted_ce' or 'normal_ce' (default: accuracy)")
+tf.app.flags.DEFINE_string("loss_type", 'weighted_ce', "whether to use 'weighted_ce' or 'normal_ce' (default: accuracy)")
 
 # maximum number of evaluation steps to stop training. This can be used to control the number of training steps to be equivalent to SeqSleepNet
 tf.app.flags.DEFINE_integer("max_eval_steps", 110, "Maximum number of evaluation steps to stop training (default: 110)")

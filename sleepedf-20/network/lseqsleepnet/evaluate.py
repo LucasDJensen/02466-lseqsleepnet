@@ -9,6 +9,7 @@ from imblearn.metrics import sensitivity_score
 
 # import h5py
 import hdf5storage
+from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
 
 # affective sequence length
 config = dict()
@@ -16,7 +17,9 @@ config = dict()
 config['num_fold_testing_data'] = 2
 config['aggregation'] = 'multiplication' # 'multiplication' or 'average'
 config['nclasses_data'] = 4
-config['out_dir'] = '/Users/tlj258/Library/CloudStorage/OneDrive-UniversityofCopenhagen/Documents/PhD/HUMMUSS_paper/outputs/l-seqsleepnet/reduced_test_set' # path to the directory of test_ret.mat, or results subdirectories
+
+# path to the directory of test_ret.mat, or results subdirectories
+config['out_dir'] = os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/")
 config['mask_artifacts'] = True
 n_iterations = 1 # number of models trained. The final metrics are the average across the different iterations
 datasets_list = ["kornum", "spindle"] # datasets to evaluate
@@ -175,8 +178,8 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
 
     for dataset in datasets_list:
         if dataset == 'kornum':
-                
-            data_list_file = "/home/s202283/code/l-seqsleepnet/file_lists/kornum_data/eeg1/test_list.txt"
+            # Only loads eeg1 because the labels are the same for eeg1 and eeg2 and emg due to the way the data was collected
+            data_list_file = os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/test_list.txt")
             label_list = []
             labels, file_sizes = read_groundtruth(data_list_file)
             label_list.extend(list(labels.values()))
@@ -185,7 +188,7 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
                 pred_list = []
                 
                 # output_file = pj(config['out_dir'], 'iteration' + str(it+1), str(nsubseq)+'_'+str(config['subseqlen']), 'testing', 'kornum_eval_reduced', 'test_ret.mat')
-                output_file = "/home/s202283/outputs/l-seqsleepnet/prueba_students_stages/test_ret.mat"
+                output_file = os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/prueba_students_stages/test_ret.mat")
 
                 preds = aggregate_lseqsleepnet(output_file, file_sizes)
                 pred_list.extend(list(preds.values()))
@@ -210,7 +213,7 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
             for cohort in cohorts_list:
                 for scorer in range(n_scorers_spindle):
                         
-                    data_list_file = pj('/Users/tlj258/Code/HUMMUSS/SleepTransformer_mice/shhs/data_preprocessing/spindle_data/file_list/local', 'cohort_' + cohort.upper(), 'scorer_' + str(scorer+1), 'eeg1/test_list.txt')
+                    data_list_file = pj(os.path.join(HPC_STORAGE_PATH, 'LSeqSleepNet_File_Lists/spindle_data'), 'cohort_' + cohort.upper(), 'scorer_' + str(scorer+1), 'eeg1/test_list.txt')
                     label_list = []
                     labels, file_sizes = read_groundtruth(data_list_file)
                     label_list.extend(list(labels.values()))

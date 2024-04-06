@@ -67,4 +67,4 @@ dependencies:
   - xz=5.4.6=h5eee18b_0
   - zipp=3.11.0=py37h06a4308_0
   - zlib=1.2.13=h5eee18b_0
-prefix: /home/s202283/.conda/envs/l_seqsleepnet2
+prefix: /zhome/65/f/160006/.conda/envs/l_seqsleepnet2

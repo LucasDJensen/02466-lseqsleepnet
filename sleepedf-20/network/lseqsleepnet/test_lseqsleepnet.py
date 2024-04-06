@@ -16,6 +16,7 @@ from sklearn.metrics import cohen_kappa_score
 
 from datagenerator_wrapper import DataGeneratorWrapper
 import time
+from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
 
 # Parameters
 # ==================================================
@@ -23,14 +24,13 @@ import time
 # Misc Parameters
 tf.app.flags.DEFINE_string("allow_soft_placement", 'True', "Allow device soft device placement")
 tf.app.flags.DEFINE_string("log_device_placement", 'False', "Log placement of ops on devices")
-
 # My Parameters
-tf.app.flags.DEFINE_string("eeg_test_data", "", "file containing the list of test EEG data")
-tf.app.flags.DEFINE_string("eog_test_data", "", "file containing the list of test EOG data")
-tf.app.flags.DEFINE_string("emg_test_data", "", "file containing the list of test EMG data")
+tf.app.flags.DEFINE_string("eeg_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/test_list.txt"), "file containing the list of test EEG data")
+tf.app.flags.DEFINE_string("eog_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/test_list.txt"), "file containing the list of test EOG data")
+tf.app.flags.DEFINE_string("emg_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/test_list.txt"), "file containing the list of test EMG data")
 
-tf.app.flags.DEFINE_string("out_dir", "", "Output directory")
-tf.app.flags.DEFINE_string("checkpoint_dir", "./checkpoint/", "Checkpoint directory")
+tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/"), "Output directory")
+tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/checkpoint/"), "Checkpoint directory")
 
 tf.app.flags.DEFINE_float("dropout_rnn", 0.75, "Dropout keep probability (default: 0.75)")
 tf.app.flags.DEFINE_integer("nfilter", 32, "Sequence length (default: 20)")
