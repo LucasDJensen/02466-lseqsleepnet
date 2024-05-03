@@ -32,7 +32,7 @@ tf.app.flags.DEFINE_string("emg_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE
 tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/"), "Output directory")
 tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/checkpoint/"), "Checkpoint directory")
 
-tf.app.flags.DEFINE_float("dropout_rnn", 0.75, "Dropout keep probability (default: 0.75)")
+tf.app.flags.DEFINE_float("dropout_rnn", 0.9, "Dropout keep probability (default: 0.75)")
 tf.app.flags.DEFINE_integer("nfilter", 32, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("nhidden1", 64, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("attention_size", 64, "Sequence length (default: 20)")
@@ -41,14 +41,14 @@ tf.app.flags.DEFINE_integer("nhidden2", 64, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("batch_size", 8, "Number of instances per mini-batch (default: 32)")
 tf.app.flags.DEFINE_integer("nclasses_data", 4, "Number of classes in the data (whether artifacts are discarded or not is controlled in nclasses_model)")
 tf.app.flags.DEFINE_string("mask_artifacts", 'False', "whether masking artifacts in loss")
-tf.app.flags.DEFINE_string("artifact_detection", 'False', "whether just predicting if an epoch is an artifact")
+tf.app.flags.DEFINE_string("artifact_detection", 'True', "whether just predicting if an epoch is an artifact")
 tf.app.flags.DEFINE_integer("ndim", 129, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("frame_seq_len", 17, "Sequence length (default: 20)")
 
 # subsuqence length
 tf.app.flags.DEFINE_integer("sub_seq_len", 10, "Sequence length (default: 32)")
 # number of subsequence
-tf.app.flags.DEFINE_integer("nsubseq", 10, "number of overall segments (default: 9)")
+tf.app.flags.DEFINE_integer("nsubseq", 8, "number of overall segments (default: 9)")
 
 tf.app.flags.DEFINE_string("best_model_criteria", 'balanced_accuracy', "whether to save the model with best 'balanced_accuracy' or 'accuracy' (default: accuracy)")
 tf.app.flags.DEFINE_string("loss_type", 'weighted_ce', "whether to use 'weighted_ce' or 'normal_ce' (default: accuracy)")
@@ -62,10 +62,10 @@ print("\nParameters:")
 print(sys.argv[0])
 flags_dict = {}
 for idx, a in enumerate(sys.argv):
-    if a[:2]=="--":
-        flags_dict[a[2:]] = sys.argv[idx+1]
+    if a[:2] == "--":
+        flags_dict[a[2:]] = sys.argv[idx + 1]
 
-for attr in sorted(flags_dict): # python3
+for attr in sorted(flags_dict):  # python3
     print("{}={}".format(attr.upper(), flags_dict[attr]))
 print("")
 
@@ -76,7 +76,7 @@ checkpoint_path = os.path.abspath(os.path.join(out_path,FLAGS.checkpoint_dir))
 if not os.path.isdir(os.path.abspath(out_path)): os.makedirs(os.path.abspath(out_path))
 if not os.path.isdir(os.path.abspath(checkpoint_path)): os.makedirs(os.path.abspath(checkpoint_path))
 
-with open(os.path.join(out_path,'test_settings.txt'), 'w') as f:
+with open(os.path.join(out_path, 'test_settings.txt'), 'w') as f:
     for attr in sorted(flags_dict):  # python3
         f.write("{}={}".format(attr.upper(), flags_dict[attr]))
         f.write('\n')
@@ -98,8 +98,8 @@ boolean_flags = [
     'artifact_detection',
 ]
 for bf in boolean_flags:
-    assert getattr(FLAGS, bf)=='True' or getattr(FLAGS, bf)=='False', "%s must be a string and either 'True' or 'False'" % bf
-    setattr(config, bf, getattr(FLAGS, bf)=='True')
+    assert getattr(FLAGS, bf) == 'True' or getattr(FLAGS, bf) == 'False', "%s must be a string and either 'True' or 'False'" % bf
+    setattr(config, bf, getattr(FLAGS, bf) == 'True')
 
 if config.artifact_detection == True:
     config.artifacts_label = FLAGS.nclasses_data - 1 # right now the code probably just works when the artifact label is the last one
@@ -130,7 +130,7 @@ eeg_active = (FLAGS.eeg_test_data != "")
 eog_active = (FLAGS.eog_test_data != "")
 emg_active = (FLAGS.emg_test_data != "")
 
-if (not eog_active and not emg_active):
+if not eog_active and not emg_active:
     print("eeg active")
     test_gen_wrapper = DataGeneratorWrapper(eeg_filelist=os.path.abspath(FLAGS.eeg_test_data),
                                              num_fold=config.num_fold_testing_data,
@@ -143,7 +143,7 @@ if (not eog_active and not emg_active):
     test_gen_wrapper.compute_eeg_normalization_params_by_signal()
     nchannel = 1
 
-elif(eog_active and not emg_active):
+elif eog_active and not emg_active:
     print("eeg and eog active")
     test_gen_wrapper = DataGeneratorWrapper(eeg_filelist=os.path.abspath(FLAGS.eeg_test_data),
                                             eog_filelist=os.path.abspath(FLAGS.eog_test_data),
@@ -157,7 +157,7 @@ elif(eog_active and not emg_active):
     test_gen_wrapper.compute_eeg_normalization_params_by_signal()
     test_gen_wrapper.compute_eog_normalization_params_by_signal()
     nchannel = 2
-elif(eog_active and emg_active):
+elif eog_active and emg_active:
     print("eeg, eog, and emg active")
     test_gen_wrapper = DataGeneratorWrapper(eeg_filelist=os.path.abspath(FLAGS.eeg_test_data),
                                             eog_filelist=os.path.abspath(FLAGS.eog_test_data),
@@ -247,7 +247,7 @@ with tf.Graph().as_default():
                     score[(test_step - 1) * factor * config.batch_size: test_step * factor * config.batch_size,
                     s * config.sub_seq_len:(s + 1) * config.sub_seq_len] = score_[:, s]
                 test_step += 1
-            if(gen.pointer < len(gen.data_index)):
+            if gen.pointer < len(gen.data_index):
                 actual_len, x_batch, y_batch, label_batch_ = gen.rest_batch(factor*config.batch_size)
                 output_loss_, total_loss_, yhat_, score_ = dev_step(x_batch, y_batch)
                 for s in range(config.nsubseq):
@@ -290,3 +290,5 @@ with tf.Graph().as_default():
                             {'score': test_score},
                             format='7.3')
         test_gen_wrapper.gen.reset_pointer()
+
+print("End of script.")

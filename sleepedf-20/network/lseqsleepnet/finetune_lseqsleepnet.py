@@ -401,7 +401,7 @@ with tf.Graph().as_default():
                         print("Best model updated")
                         source_file = checkpoint_name
                         dest_file = os.path.join(checkpoint_path, 'best_model_acc')
-                        shutil.copy(source_file + '.data-00000-of-00001', dest_file + '.data-00000-of-00001')
+                        shutil.copy(source_file + '.data', dest_file + '.data')
                         shutil.copy(source_file + '.index', dest_file + '.index')
                         shutil.copy(source_file + '.meta', dest_file + '.meta')
 

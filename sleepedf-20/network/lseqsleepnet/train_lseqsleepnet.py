@@ -20,7 +20,6 @@ from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
 
 import pickle  # For saving/loading the training state
 
-
 # Parameters
 # ==================================================
 
@@ -95,8 +94,10 @@ print("")
 out_path = os.path.abspath(os.path.join(os.path.curdir, FLAGS.out_dir))
 # path where checkpoint models are stored
 checkpoint_path = os.path.abspath(os.path.join(out_path, FLAGS.checkpoint_dir))
-if not os.path.isdir(os.path.abspath(out_path)): os.makedirs(os.path.abspath(out_path))
-if not os.path.isdir(os.path.abspath(checkpoint_path)): os.makedirs(os.path.abspath(checkpoint_path))
+if not os.path.isdir(os.path.abspath(out_path)):
+    os.makedirs(os.path.abspath(out_path))
+if not os.path.isdir(os.path.abspath(checkpoint_path)):
+    os.makedirs(os.path.abspath(checkpoint_path))
 
 with open(os.path.join(out_path, 'training_settings.txt'), 'w') as f:
     for attr in sorted(flags_dict):  # python3
@@ -272,7 +273,7 @@ with tf.Graph().as_default():
             train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
         # Initialize or restore model parameters
-        saver = tf.train.Saver(tf.all_variables(), max_to_keep=1)
+        saver = tf.train.Saver(tf.all_variables())
 
         # Attempt to load a previously saved model and training state
         checkpoint_file = tf.train.latest_checkpoint(checkpoint_path)
@@ -469,7 +470,7 @@ with tf.Graph().as_default():
                             print("Best model updated")
                             source_file = checkpoint_name
                             dest_file = os.path.join(checkpoint_path, 'best_model_acc')
-                            shutil.copy(source_file + '.data-00000-of-00001', dest_file + '.data-00000-of-00001')
+                            shutil.copy(source_file + '.data', dest_file + '.data')
                             shutil.copy(source_file + '.index', dest_file + '.index')
                             shutil.copy(source_file + '.meta', dest_file + '.meta')
 
@@ -487,8 +488,8 @@ with tf.Graph().as_default():
                         if (config.early_stopping == True):
                             print('EARLY STOPPING enabled!')
                             # early stopping only after 200 evaluation steps
-                            if (
-                                    early_stop_count >= config.early_stop_count and current_step >= config.minimum_training_updates):
+                            if (early_stop_count >= config.early_stop_count
+                                    and current_step >= config.minimum_training_updates):
                                 end_time = time.time()
                                 with open(os.path.join(out_dir, "training_time.txt"), "a") as text_file:
                                     text_file.write("{:g}\n".format((end_time - start_time)))
