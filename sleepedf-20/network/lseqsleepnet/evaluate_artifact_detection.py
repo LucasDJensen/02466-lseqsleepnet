@@ -19,7 +19,7 @@ config = dict()
 
 config['num_fold_testing_data'] = 2
 config['aggregation'] = 'average' # 'multiplication' or 'average'
-config['nclasses_data'] = 2
+config['nclasses_data'] = 4
 
 # path to the directory of test_ret.mat, or results subdirectories
 config['out_dir'] = os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/")
@@ -30,7 +30,7 @@ datasets_list = ["kornum"]#, "spindle"] # datasets to evaluate
 cohorts_list = ["a"] # cohorts used in spindle dataset
 n_scorers_spindle = 1 #
 nsubseq_list = [8]
-subseqlen_list = [8] # subseqlen_list must have the same length as nsubseq_list
+subseqlen_list = [10] # subseqlen_list must have the same length as nsubseq_list
 assert len(nsubseq_list) == len(subseqlen_list), "subseqlen_list must have the same length as nsubseq_list"
 config['artifacts_label'] = config['nclasses_data'] # right now the code probably just works when the artifact label is the last one # in this script the labels start from 1 (different to training and test script)
 config['nclasses_model'] = 1
