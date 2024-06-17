@@ -39,9 +39,9 @@ tf.app.flags.DEFINE_string("emg_train_data", os.path.join(HPC_STORAGE_KORNUM_FIL
                            "file containing the list of training EMG data")
 tf.app.flags.DEFINE_string("emg_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/eval_list.txt"),
                            "file containing the list of evaluation EMG data")
-tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/outputs/train_test/"),
+tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/"),
                            "Output directory")
-tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet/checkpoint/"),
+tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/checkpoint/"),
                            "Checkpoint directory")
 tf.app.flags.DEFINE_integer("training_epoch", 10, "Number of training epochs (default: 10)")
 tf.app.flags.DEFINE_integer("batch_size", 8, "Number of instances per mini-batch (default: 32)")
@@ -54,8 +54,8 @@ tf.app.flags.DEFINE_integer("nhidden2", 64, "Sequence length (default: 20)")
 
 tf.app.flags.DEFINE_integer("nclasses_data", 4,
                             "Number of classes in the data (whether artifacts are discarded or not is controlled in nclasses_model)")
-tf.app.flags.DEFINE_string("mask_artifacts", 'False', "whether masking artifacts in loss")
-tf.app.flags.DEFINE_string("artifact_detection", 'True', "whether just predicting if an epoch is an artifact")
+tf.app.flags.DEFINE_string("mask_artifacts", 'True', "whether masking artifacts in loss")
+tf.app.flags.DEFINE_string("artifact_detection", 'False', "whether just predicting if an epoch is an artifact")
 tf.app.flags.DEFINE_integer("ndim", 129, "Sequence length (default: 20)")
 tf.app.flags.DEFINE_integer("frame_seq_len", 17, "Sequence length (default: 20)")
 
@@ -470,7 +470,7 @@ with tf.Graph().as_default():
                             print("Best model updated")
                             source_file = checkpoint_name
                             dest_file = os.path.join(checkpoint_path, 'best_model_acc')
-                            shutil.copy(source_file + '.data', dest_file + '.data')
+                            shutil.copy(source_file + '.data-00000-of-00001', dest_file + '.data-00000-of-00001')
                             shutil.copy(source_file + '.index', dest_file + '.index')
                             shutil.copy(source_file + '.meta', dest_file + '.meta')
 

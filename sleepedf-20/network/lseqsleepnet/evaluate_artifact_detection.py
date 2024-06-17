@@ -225,7 +225,7 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
             for cohort in cohorts_list:
                 for scorer in range(n_scorers_spindle):
 
-                    data_list_file = pj(os.path.join(HPC_STORAGE_SPINDLE_FILE_LIST_PATH, "LSeqSleepNet_File_Lists/spindle_data"), 'cohort_' + cohort.upper(), 'scorer_' + str(scorer+1), 'eeg1/test_list.txt')
+                    data_list_file = pj(HPC_STORAGE_SPINDLE_FILE_LIST_PATH, 'cohort_' + cohort.upper(), 'scorer_' + str(scorer+1), 'eeg1/test_list.txt')
                     label_list = []
                     labels, file_sizes = read_groundtruth(data_list_file)
                     label_list.extend(list(labels.values()))
