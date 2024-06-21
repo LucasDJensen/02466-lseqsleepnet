@@ -42,9 +42,10 @@ class DataGenerator3:
 
     # read data from mat files in list_of_files
     def read_mat_filelist(self):
-        self.X2 = np.ndarray([self.data_size, self.data_shape_2[0], self.data_shape_2[1]],dtype=np.float32)
-        self.y = np.ndarray([self.data_size, self.Ncat],dtype=np.float32)
-        self.label = np.ndarray([self.data_size],dtype=np.float32)
+        self.X2 = np.ndarray([int(self.data_size), int(self.data_shape_2[0]), int(self.data_shape_2[1])],dtype=np.float32)
+        # self.X2 = np.ndarray([self.data_size, self.data_shape_2[0], self.data_shape_2[1]],dtype=np.float32)
+        self.y = np.ndarray([int(self.data_size), int(self.Ncat)],dtype=np.float32)
+        self.label = np.ndarray([int(self.data_size)],dtype=np.float32)
         count = 0
         for i in range(len(self.list_of_files)):
             # read in one file

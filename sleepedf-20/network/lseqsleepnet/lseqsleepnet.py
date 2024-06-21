@@ -53,6 +53,8 @@ class LSeqSleepNet(object):
                 self.prediction = tf.cast(prediction, dtype=tf.int64)
             self.score = tf.reshape(self.score, [-1, self.config.nsubseq, self.config.sub_seq_len, self.config.nclasses_model])
             self.prediction = tf.reshape(self.prediction, [-1, self.config.nsubseq, self.config.sub_seq_len])
+            # extract embeddings
+            self.embeddings = fc2
 
         # calculate sequence cross-entropy output loss
         with tf.name_scope("output-loss"):

@@ -16,9 +16,22 @@ from sklearn.metrics import cohen_kappa_score
 from datagenerator_wrapper import DataGeneratorWrapper
 
 import time
-from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
+from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH, HPC_STORAGE_SPINDLE_FILE_LIST_PATH
 
 import pickle  # For saving/loading the training state
+
+use_dataset = 'brown'
+# use_dataset = 'brown'
+
+if use_dataset == 'kornum':
+    FILE_LIST_PATH = HPC_STORAGE_KORNUM_FILE_LIST_PATH
+    model_name = 'kornum'
+elif use_dataset == 'brown':
+    FILE_LIST_PATH = HPC_STORAGE_SPINDLE_FILE_LIST_PATH
+    model_name = 'brown'
+else:
+    raise ValueError("use_dataset should be 'kornum' or 'spindle'")
+
 
 # Parameters
 # ==================================================
@@ -27,21 +40,21 @@ import pickle  # For saving/loading the training state
 tf.app.flags.DEFINE_string("allow_soft_placement", 'True', "Allow device soft device placement")
 tf.app.flags.DEFINE_string("log_device_placement", 'False', "Log placement of ops on devices")
 # My Parameters
-tf.app.flags.DEFINE_string("eeg_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/train_list.txt"),
+tf.app.flags.DEFINE_string("eeg_train_data", os.path.join(FILE_LIST_PATH, "eeg1/train_list.txt"),
                            "file containing the list of training EEG data")
-tf.app.flags.DEFINE_string("eeg_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/eval_list.txt"),
+tf.app.flags.DEFINE_string("eeg_eval_data", os.path.join(FILE_LIST_PATH, "eeg1/eval_list.txt"),
                            "file containing the list of evaluation EEG data")
-tf.app.flags.DEFINE_string("eog_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/train_list.txt"),
+tf.app.flags.DEFINE_string("eog_train_data", os.path.join(FILE_LIST_PATH, "eeg2/train_list.txt"),
                            "file containing the list of training EOG data")
-tf.app.flags.DEFINE_string("eog_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/eval_list.txt"),
+tf.app.flags.DEFINE_string("eog_eval_data", os.path.join(FILE_LIST_PATH, "eeg2/eval_list.txt"),
                            "file containing the list of evaluation EOG data")
-tf.app.flags.DEFINE_string("emg_train_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/train_list.txt"),
+tf.app.flags.DEFINE_string("emg_train_data", os.path.join(FILE_LIST_PATH, "emg/train_list.txt"),
                            "file containing the list of training EMG data")
-tf.app.flags.DEFINE_string("emg_eval_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/eval_list.txt"),
+tf.app.flags.DEFINE_string("emg_eval_data", os.path.join(FILE_LIST_PATH, "emg/eval_list.txt"),
                            "file containing the list of evaluation EMG data")
-tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/"),
+tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/", model_name),
                            "Output directory")
-tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/checkpoint/"),
+tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/checkpoint/", model_name),
                            "Checkpoint directory")
 tf.app.flags.DEFINE_integer("training_epoch", 10, "Number of training epochs (default: 10)")
 tf.app.flags.DEFINE_integer("batch_size", 8, "Number of instances per mini-batch (default: 32)")

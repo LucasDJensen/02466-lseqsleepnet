@@ -14,6 +14,19 @@ from imblearn.metrics import sensitivity_score
 # import h5py
 import hdf5storage
 
+
+use_dataset = 'brown'
+# use_dataset = 'brown'
+
+if use_dataset == 'kornum':
+    FILE_LIST_PATH = HPC_STORAGE_KORNUM_FILE_LIST_PATH
+    model_name = 'kornum'
+elif use_dataset == 'brown':
+    FILE_LIST_PATH = HPC_STORAGE_SPINDLE_FILE_LIST_PATH
+    model_name = 'brown'
+else:
+    raise ValueError("use_dataset should be 'kornum' or 'spindle'")
+
 # affective sequence length
 config = dict()
 
@@ -22,11 +35,11 @@ config['aggregation'] = 'multiplication'  # 'multiplication' or 'average'
 config['nclasses_data'] = 4
 
 # path to the directory of test_ret.mat, or results subdirectories
-config['out_dir'] = os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/")
+config['out_dir'] = os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/", model_name)
 evaluation_out_dir = os.path.join(config['out_dir'], 'evaluation')
 config['mask_artifacts'] = True
 n_iterations = 1  # number of models trained. The final metrics are the average across the different iterations.
-datasets_list = ["kornum"]  # , "spindle"] # datasets to evaluate
+datasets_list = ["spindle"]  # , "kornum"] # datasets to evaluate
 cohorts_list = ["a"]  # cohorts used in spindle dataset
 n_scorers_spindle = 1  #
 nsubseq_list = [8]
@@ -194,7 +207,7 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
     for dataset in datasets_list:
         if dataset == 'kornum':
             # Only loads eeg1 because the labels are the same for eeg1 and eeg2 and emg due to the way the data was collected
-            data_list_file = os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/test_list.txt")
+            data_list_file = os.path.join(FILE_LIST_PATH, "eeg1/test_list.txt")
             label_list = []
             labels, file_sizes = read_groundtruth(data_list_file)
             label_list.extend(list(labels.values()))
@@ -236,8 +249,9 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
             for cohort in cohorts_list:
                 for scorer in range(n_scorers_spindle):
 
-                    data_list_file = pj(HPC_STORAGE_SPINDLE_FILE_LIST_PATH, 'cohort_' + cohort.upper(),
-                                        'scorer_' + str(scorer + 1), 'eeg1/test_list.txt')
+                    # data_list_file = pj(HPC_STORAGE_SPINDLE_FILE_LIST_PATH, 'cohort_' + cohort.upper(),
+                    #                     'scorer_' + str(scorer + 1), 'eeg1/test_list.txt')
+                    data_list_file = os.path.join(FILE_LIST_PATH, "eeg1/test_list.txt")
                     label_list = []
                     labels, file_sizes = read_groundtruth(data_list_file)
                     label_list.extend(list(labels.values()))
@@ -251,6 +265,13 @@ for nsubseq_idx, nsubseq in enumerate(nsubseq_list):
                         preds = aggregate_lseqsleepnet(output_file, file_sizes)
                         pred_list.extend(list(preds.values()))
                         results = calculate_metrics(np.hstack(label_list), np.hstack(pred_list))
+
+                        disp = ConfusionMatrixDisplay(confusion_matrix=results["confusion_matrix"],
+                                                      display_labels=['WAKE', 'NREM', 'REM'])
+                        cm_plot = disp.plot(cmap=plt.cm.Blues)
+                        cm_file = os.path.join(evaluation_out_dir, 'confusion_matrix.png')
+                        os.makedirs(os.path.dirname(cm_file), exist_ok=True)
+                        plt.savefig(cm_file)
 
                         lines['spindle']['cohort_' + cohort.upper()]['acc'][it, scorer, nsubseq_idx] = results['acc']
                         lines['spindle']['cohort_' + cohort.upper()]['bal_acc'][it, scorer, nsubseq_idx] = results[

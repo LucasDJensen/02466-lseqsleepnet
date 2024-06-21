@@ -16,7 +16,19 @@ from sklearn.metrics import cohen_kappa_score
 
 from datagenerator_wrapper import DataGeneratorWrapper
 import time
-from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
+from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH, HPC_STORAGE_SPINDLE_FILE_LIST_PATH
+
+use_dataset = 'brown'
+# use_dataset = 'brown'
+
+if use_dataset == 'kornum':
+    FILE_LIST_PATH = HPC_STORAGE_KORNUM_FILE_LIST_PATH
+    model_name = 'kornum'
+elif use_dataset == 'brown':
+    FILE_LIST_PATH = HPC_STORAGE_SPINDLE_FILE_LIST_PATH
+    model_name = 'brown'
+else:
+    raise ValueError("use_dataset should be 'kornum' or 'spindle'")
 
 # Parameters
 # ==================================================
@@ -25,12 +37,12 @@ from _globals import HPC_STORAGE_PATH, HPC_STORAGE_KORNUM_FILE_LIST_PATH
 tf.app.flags.DEFINE_string("allow_soft_placement", 'True', "Allow device soft device placement")
 tf.app.flags.DEFINE_string("log_device_placement", 'False', "Log placement of ops on devices")
 # My Parameters
-tf.app.flags.DEFINE_string("eeg_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg1/test_list.txt"), "file containing the list of test EEG data")
-tf.app.flags.DEFINE_string("eog_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "eeg2/test_list.txt"), "file containing the list of test EOG data")
-tf.app.flags.DEFINE_string("emg_test_data", os.path.join(HPC_STORAGE_KORNUM_FILE_LIST_PATH, "emg/test_list.txt"), "file containing the list of test EMG data")
+tf.app.flags.DEFINE_string("eeg_test_data", os.path.join(FILE_LIST_PATH, "eeg1/test_list.txt"), "file containing the list of test EEG data")
+tf.app.flags.DEFINE_string("eog_test_data", os.path.join(FILE_LIST_PATH, "eeg2/test_list.txt"), "file containing the list of test EOG data")
+tf.app.flags.DEFINE_string("emg_test_data", os.path.join(FILE_LIST_PATH, "emg/test_list.txt"), "file containing the list of test EMG data")
 
-tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/"), "Output directory")
-tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/checkpoint/"), "Checkpoint directory")
+tf.app.flags.DEFINE_string("out_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/outputs/train_test/", model_name), "Output directory")
+tf.app.flags.DEFINE_string("checkpoint_dir", os.path.join(HPC_STORAGE_PATH, "results_lseqsleepnet_latent_space/checkpoint/", model_name), "Checkpoint directory")
 
 tf.app.flags.DEFINE_float("dropout_rnn", 0.9, "Dropout keep probability (default: 0.75)")
 tf.app.flags.DEFINE_integer("nfilter", 32, "Sequence length (default: 20)")
@@ -92,8 +104,8 @@ config.attention_size = FLAGS.attention_size
 # Pass boolean flags from string to bool
 # The reason is that tensorflow boolean flags don't look at the value specified in the command line. Whenever a boolean flag is present in the command line, it will evaluate to True.
 boolean_flags = [
-    'allow_soft_placement', 
-    'log_device_placement', 
+    'allow_soft_placement',
+    'log_device_placement',
     'mask_artifacts',
     'artifact_detection',
 ]
@@ -111,7 +123,7 @@ elif config.artifact_detection == False:
     if config.mask_artifacts == True:
         config.nclasses_data = FLAGS.nclasses_data
         config.artifacts_label = FLAGS.nclasses_data - 1 # right now the code probably just works when the artifact label is the last one
-        config.nclasses_model = config.nclasses_data - 1 
+        config.nclasses_model = config.nclasses_data - 1
     else:
         config.nclasses_data = FLAGS.nclasses_data
         config.nclasses_model = config.nclasses_data
@@ -136,7 +148,7 @@ if not eog_active and not emg_active:
                                              num_fold=config.num_fold_testing_data,
                                              data_shape_2=[config.frame_seq_len, config.ndim],
                                              seq_len = config.sub_seq_len * config.nsubseq,
-                                             nclasses = config.nclasses_data, 
+                                             nclasses = config.nclasses_data,
                                              artifact_detection = config.artifact_detection,
                                              artifacts_label = config.artifacts_label,
                                              shuffle=False)
@@ -150,7 +162,7 @@ elif eog_active and not emg_active:
                                             num_fold=config.num_fold_testing_data,
                                             data_shape_2=[config.frame_seq_len, config.ndim],
                                             seq_len = config.sub_seq_len * config.nsubseq,
-                                            nclasses = config.nclasses_data, 
+                                            nclasses = config.nclasses_data,
                                             artifact_detection = config.artifact_detection,
                                             artifacts_label = config.artifacts_label,
                                             shuffle=False)
@@ -165,7 +177,7 @@ elif eog_active and emg_active:
                                             num_fold=config.num_fold_testing_data,
                                             data_shape_2=[config.frame_seq_len, config.ndim],
                                             seq_len = config.sub_seq_len * config.nsubseq,
-                                            nclasses = config.nclasses_data, 
+                                            nclasses = config.nclasses_data,
                                             artifact_detection = config.artifact_detection,
                                             artifacts_label = config.artifacts_label,
                                             shuffle=False)
