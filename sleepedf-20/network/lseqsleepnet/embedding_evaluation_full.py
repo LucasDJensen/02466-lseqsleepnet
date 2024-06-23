@@ -18,6 +18,9 @@ from lseqsleepnet import LSeqSleepNet
 from config import Config
 from _globals import *
 
+import pickle
+
+
 # Parameters
 # ==================================================
 
@@ -143,20 +146,6 @@ def fit_gmm(embeddings, n_components):
     return gmm
 
 
-# Fit K-Means Clustering
-def fit_kmeans(embeddings, n_clusters):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-    cluster_labels = kmeans.fit_predict(embeddings)
-    return kmeans, cluster_labels
-
-
-# Perform t-SNE
-def perform_tsne(embeddings, n_components=2, perplexity=30, n_iter=1000):
-    tsne = TSNE(n_components=n_components, perplexity=perplexity, n_iter=n_iter, random_state=0)
-    embeddings_2d = tsne.fit_transform(embeddings)
-    return embeddings_2d
-
-
 # Plot density estimation
 def plot_density(gmm, embeddings, out_dir):
     plt.figure(figsize=(8, 6))
@@ -188,36 +177,25 @@ def plot_density(gmm, embeddings, out_dir):
     plt.show()
 
 
-# Plot t-SNE results
-def plot_tsne(embeddings_2d, labels, out_dir):
-    plt.figure(figsize=(10, 6))
-    scatter = plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=labels, cmap='viridis', alpha=0.6)
-    plt.legend(*scatter.legend_elements(), title="Classes")
-    plt.title("t-SNE Visualization of Embeddings")
-    plt.xlabel("t-SNE Component 1")
-    plt.ylabel("t-SNE Component 2")
-    plt.grid(True)
-    plot_file = os.path.join(out_dir, 'tsne_plot.png')
-    os.makedirs(os.path.dirname(plot_file), exist_ok=True)
-    plt.savefig(plot_file)
-    plt.show()
-
-
 # Plot ROC curve
 def plot_roc(labels, scores, out_dir, n_classes):
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
 
-    for i in range(n_classes):
-        fpr[i], tpr[i], _ = roc_curve(labels == i, scores)
-        roc_auc[i] = auc(fpr[i], tpr[i])
+    fpr, tpr, _ = roc_curve(labels == 3, scores)
+    roc_auc = auc(fpr, tpr)
+
+    #for i in range(n_classes):
+    #    fpr[i], tpr[i], _ = roc_curve(labels == i, scores)
+    #    roc_auc[i] = auc(fpr[i], tpr[i])
 
     # Plot all ROC curves
     plt.figure()
-    colors = ['aqua', 'darkorange', 'cornflowerblue']
-    for i, color in zip(range(n_classes), colors):
-        plt.plot(fpr[i], tpr[i], color=color, lw=2, label=f'ROC curve of class {i} (area = {roc_auc[i]:.2f})')
+    #colors = ['aqua', 'darkorange', 'cornflowerblue']
+    #for i, color in zip(range(n_classes), colors):
+    #    plt.plot(fpr[i], tpr[i], color=color, lw=2, label=f'ROC curve of class {i} (area = {roc_auc[i]:.2f})')
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
     plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -228,40 +206,6 @@ def plot_roc(labels, scores, out_dir, n_classes):
 
     # Save the plot
     plot_file = os.path.join(out_dir, 'roc_curve.png')
-    os.makedirs(os.path.dirname(plot_file), exist_ok=True)
-    plt.savefig(plot_file)
-    plt.show()
-
-
-# Plot Silhouette Analysis
-def plot_silhouette(embeddings, cluster_labels, out_dir):
-    silhouette_avg = silhouette_score(embeddings, cluster_labels)
-    print(f"Average Silhouette Score: {silhouette_avg:.2f}")
-
-    # Create a silhouette plot
-    plt.figure(figsize=(10, 6))
-    y_lower = 10
-    for i in range(np.max(cluster_labels) + 1):
-        ith_cluster_silhouette_values = silhouette_samples(embeddings, cluster_labels == i)
-        ith_cluster_silhouette_values.sort()
-        size_cluster_i = ith_cluster_silhouette_values.shape[0]
-        y_upper = y_lower + size_cluster_i
-
-        color = cm.nipy_spectral(float(i) / (np.max(cluster_labels) + 1))
-        plt.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_silhouette_values, facecolor=color,
-                          edgecolor=color, alpha=0.7)
-        plt.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
-
-        y_lower = y_upper + 10
-
-    plt.title("The silhouette plot for the various clusters.")
-    plt.xlabel("The silhouette coefficient values")
-    plt.ylabel("Cluster label")
-    plt.axvline(x=silhouette_avg, color="red", linestyle="--")
-    plt.yticks([])
-    plt.xticks(np.arange(-0.1, 1.1, 0.2))
-
-    plot_file = os.path.join(out_dir, 'silhouette_plot.png')
     os.makedirs(os.path.dirname(plot_file), exist_ok=True)
     plt.savefig(plot_file)
     plt.show()
@@ -285,6 +229,10 @@ validation_gen_wrapper = DataGeneratorWrapper(
     artifacts_label=3,
     shuffle=False
 )
+validation_gen_wrapper.compute_eeg_normalization_params_by_signal()
+validation_gen_wrapper.compute_eog_normalization_params_by_signal()
+validation_gen_wrapper.compute_emg_normalization_params_by_signal()
+
 
 # Initialize the test data generator
 test_gen_wrapper = DataGeneratorWrapper(
@@ -299,6 +247,10 @@ test_gen_wrapper = DataGeneratorWrapper(
     artifacts_label=3,
     shuffle=False
 )
+test_gen_wrapper.compute_eeg_normalization_params_by_signal()
+test_gen_wrapper.compute_eog_normalization_params_by_signal()
+test_gen_wrapper.compute_emg_normalization_params_by_signal()
+
 
 config.nchannel = 3
 
@@ -432,9 +384,17 @@ with tf.Graph().as_default():
 
         print(f'Test Embedding shape: {test_embeddings.shape}')
         print(f'Test Label shape: {test_labels.shape}')
-        # Reshape embeddings
+
+        # Reshape embeddings and labels
         validation_embeddings = validation_embeddings.reshape(-1, validation_embeddings.shape[-1])
         test_embeddings = test_embeddings.reshape(-1, test_embeddings.shape[-1])
+
+        validation_labels = validation_labels.reshape(-1, validation_labels.shape[-1])
+        test_labels = test_labels.reshape(-1, test_labels.shape[-1])
+
+        # Flatten labels to match the 2D embeddings array
+        validation_labels = validation_labels.argmax(axis=-1).reshape(-1)
+        test_labels = test_labels.argmax(axis=-1).reshape(-1)
 
         # Standardize the embeddings using validation set statistics
         validation_mean = np.mean(validation_embeddings, axis=0)
@@ -442,23 +402,21 @@ with tf.Graph().as_default():
 
         validation_embeddings = standardize_embeddings(validation_embeddings, validation_mean, validation_std)
         test_embeddings = standardize_embeddings(test_embeddings, validation_mean, validation_std)
+
         print('After reshape and standardization')
         print(f'Validation Embedding shape: {validation_embeddings.shape}')
         print(f'Validation Label shape: {validation_labels.shape}')
-
         print(f'Test Embedding shape: {test_embeddings.shape}')
         print(f'Test Label shape: {test_labels.shape}')
 
-        # Apply t-SNE
-        embeddings_2d = perform_tsne(validation_embeddings, n_components=2)
+        np.save(os.path.join(out_path, 'validation_labels.npy'), validation_labels)
+        np.save(os.path.join(out_path, 'test_labels.npy'), test_labels)
+        np.save(os.path.join(out_path, 'validation_embeddings.npy'), validation_embeddings)
+        np.save(os.path.join(out_path, 'test_embeddings.npy'), test_embeddings)
 
-        # # Plot t-SNE results
-        # plot_tsne(embeddings_2d, validation_labels, output_dir)
-
-        # Fit GMM on clean validation data
-        # clean_indices = labels != artifact_label
+        # Fit GMM on clean validation embeddings
         gmm = fit_gmm(validation_embeddings, n_components=3)
-        plot_density(gmm, validation_embeddings, out_path)
+        # plot_density(gmm, validation_embeddings, out_path)
 
         # Compute the probability scores for ROC-AUC
         scores = gmm.score_samples(test_embeddings)
@@ -466,17 +424,3 @@ with tf.Graph().as_default():
         # Plot ROC curve and compute AUC
         n_classes = len(np.unique(test_labels))
         plot_roc(test_labels, scores, out_path, n_classes)
-
-        # Fit K-Means
-        n_clusters = 3  # Number of clusters for K-Means
-        kmeans, cluster_labels = fit_kmeans(validation_embeddings, n_clusters)
-        plot_silhouette(validation_embeddings, cluster_labels, out_path)
-
-        # Plot Confusion Matrix
-        conf_matrix = confusion_matrix(validation_labels, cluster_labels)
-        disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix)
-        disp.plot()
-        plot_file = os.path.join(out_path, 'confusion_matrix.png')
-        os.makedirs(os.path.dirname(plot_file), exist_ok=True)
-        plt.savefig(plot_file)
-        plt.show()
